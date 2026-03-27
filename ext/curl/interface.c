@@ -1881,8 +1881,8 @@ static zend_result _php_curl_setopt(php_curl *ch, zend_long option, zval *zvalue
 		case CURLOPT_HSTS:
 #endif
 		case CURLOPT_KRBLEVEL:
-		// Authorization header would be implictly set
-		// with an empty string thus we explictly set the option
+		// Authorization header would be implicitly set
+		// with an empty string thus we explicitly set the option
 		// to null to avoid this unwarranted side effect
 		case CURLOPT_USERPWD:
 		case CURLOPT_USERNAME:
