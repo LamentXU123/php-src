@@ -50,6 +50,10 @@ PHP 8.6 UPGRADE NOTES
   . Form feed (\f) is now added in the default trimmed characters of trim(),
     rtrim() and ltrim(). RFC: https://wiki.php.net/rfc/trim_form_feed
 
+- PCNTL:
+  . pcntl_exec() now throws a ValueError if the $args argument is not a list
+    array.
+
 ========================================
 2. New Features
 ========================================
