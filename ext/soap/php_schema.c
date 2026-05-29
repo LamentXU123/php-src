@@ -43,6 +43,23 @@ static int schema_restriction_var_char(xmlNodePtr val, sdlRestrictionCharPtr *va
 
 static void schema_type_fixup(sdlCtx *ctx, sdlTypePtr type);
 
+static int schema_parse_int(const xmlChar *value, const char *name)
+{
+	zend_long parsed;
+	char *end;
+	char *str = (char *) value;
+
+	parsed = ZEND_STRTOL(str, &end, 10);
+	if (end == str) {
+		parsed = 0;
+	}
+	if (ZEND_LONG_EXCEEDS_INT(parsed)) {
+		soap_error1(E_ERROR, "Parsing Schema: %s value is out of range", name);
+	}
+
+	return (int) parsed;
+}
+
 static encodePtr create_encoder(sdlPtr sdl, sdlTypePtr cur_type, const xmlChar *ns, const xmlChar *type)
 {
 	smart_str nscat = {0};
@@ -844,7 +861,7 @@ static int schema_restriction_var_int(xmlNodePtr val, sdlRestrictionIntPtr *valp
 		soap_error0(E_ERROR, "Parsing Schema: missing restriction value");
 	}
 
-	(*valptr)->value = atoi((char*)value->children->content);
+	(*valptr)->value = schema_parse_int(value->children->content, (char *) val->name);
 
 	return TRUE;
 }
@@ -1006,7 +1023,7 @@ void schema_min_max(xmlNodePtr node, sdlContentModelPtr model)
 	xmlAttrPtr attr = get_attribute(node->properties, "minOccurs");
 
 	if (attr) {
-		model->min_occurs = atoi((char*)attr->children->content);
+		model->min_occurs = schema_parse_int(attr->children->content, "minOccurs");
 	} else {
 		model->min_occurs = 1;
 	}
@@ -1016,7 +1033,7 @@ void schema_min_max(xmlNodePtr node, sdlContentModelPtr model)
 		if (!strncmp((char*)attr->children->content, "unbounded", sizeof("unbounded"))) {
 			model->max_occurs = -1;
 		} else {
-			model->max_occurs = atoi((char*)attr->children->content);
+			model->max_occurs = schema_parse_int(attr->children->content, "maxOccurs");
 		}
 	} else {
 		model->max_occurs = 1;

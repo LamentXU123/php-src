@@ -120,6 +120,10 @@ PHP 8.4 UPGRADE NOTES
   . SimpleXML:
     . Calling simplexml_import_dom() with a non-XML object now throws a
       TypeError instead of a ValueError.
+  . SOAP:
+    . Parsing WSDL/XSD schemas now rejects out-of-range integer values for
+      minOccurs, maxOccurs, and integer restriction facets. These were
+      previously silently truncated.
   . Standard:
     . round() now validates the value of the $mode parameter and throws a
       ValueError for invalid modes. Previously invalid modes would have been

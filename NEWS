@@ -15,6 +15,10 @@ PHP                                                                        NEWS
     IntlCalendar::equals(), ::before(), ::after(), and ::isEquivalentTo().
     (Weilin Du)
 
+- SOAP:
+  . Fixed integer overflows when parsing XML Schema integer values.
+    (Weilin Du)
+
 - Zlib:
   . Fixed memory leak if deflate initialization fails and there is a dict.
     (ndossche)
