@@ -136,6 +136,7 @@ U_CFUNC PHP_METHOD(IntlNumberRangeFormatter, createFromSkeleton)
 
         INTL_G(use_exceptions) = old_use_exception;
         INTL_G(error_level) = old_error_level;
+        RETURN_THROWS();
     }
 
     LocalizedNumberRangeFormatter* nrf = new LocalizedNumberRangeFormatter(
@@ -165,6 +166,11 @@ U_CFUNC PHP_METHOD(IntlNumberRangeFormatter, format)
         Z_PARAM_NUMBER(end)
     ZEND_PARSE_PARAMETERS_END();
 
+    if (RANGEFORMATTER_OBJECT(obj) == nullptr) {
+        zend_throw_error(NULL, "Found unconstructed IntlNumberRangeFormatter");
+        RETURN_THROWS();
+    }
+
     UErrorCode error = U_ZERO_ERROR;
 
     icu::Formattable start_formattable = rangeformatter_create_formattable(start);
@@ -180,12 +186,21 @@ U_CFUNC PHP_METHOD(IntlNumberRangeFormatter, format)
 
     if (U_FAILURE(error)) {
         intl_error_set(NULL, error, "Failed to format number range");
+        INTL_G(use_exceptions) = old_use_exception;
+        INTL_G(error_level) = old_error_level;
+        RETURN_THROWS();
     }
 
     zend_string *ret = intl_charFromString(result, &error);
 
-    if (U_FAILURE(error)) {
+    if (ret == nullptr || U_FAILURE(error)) {
+        if (U_SUCCESS(error)) {
+            error = U_INTERNAL_PROGRAM_ERROR;
+        }
         intl_error_set(NULL, error, "Failed to convert result to UTF-8");
+        INTL_G(use_exceptions) = old_use_exception;
+        INTL_G(error_level) = old_error_level;
+        RETURN_THROWS();
     }
 
     INTL_G(use_exceptions) = old_use_exception;
