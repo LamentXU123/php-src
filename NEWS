@@ -72,6 +72,10 @@ PHP                                                                        NEWS
   . Fixed bug GH-21314 (Different session garbage collector behavior between
     PHP 8.3 and PHP 8.5). (jorgsowa)
 
+- SOAP:
+  . Fixed xsd:hexBinary decoding to reject odd-length values instead of
+    silently truncating the last nibble. (Weilin Du)
+
 - SPL:
   . Fix class_parents for classes with leading slash in non-autoload mode.
     (jorgsowa)
