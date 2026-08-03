@@ -508,6 +508,7 @@
       - 'ext/xml/expat_compat.h'
       - 'ext/xml/php_xml.h'
       - 'main/*.h'
+      # main/io/*.h headers are internal and intentionally omitted.
       - 'main/streams/*.h'
       - 'sapi/cli/cli.h'
       - 'sapi/embed/php_embed.h'
