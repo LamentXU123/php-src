@@ -3002,12 +3002,7 @@ ZEND_API void ZEND_FASTCALL zend_hash_sort_packed(HashTable *ht, compare_func_t 
 	IS_CONSISTENT(ht);
 	HT_ASSERT_RC1(ht);
 	ZEND_ASSERT(HT_IS_PACKED(ht) && HT_IS_WITHOUT_HOLES(ht));
-	ZEND_ASSERT(!HT_HAS_ITERATORS(ht));
 
-	/* Preserve original order for stable comparisons. Swaps must include u2. */
-	for (uint32_t i = 0; i < ht->nNumUsed; i++) {
-		Z_EXTRA(ht->arPacked[i]) = i;
-	}
 	zend_sort(ht->arPacked, ht->nNumUsed, sizeof(zval), compar, zend_hash_packed_zval_swap);
 	ht->nInternalPointer = 0;
 	ht->nNextFreeElement = ht->nNumUsed;

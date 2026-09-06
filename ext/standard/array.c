@@ -698,25 +698,18 @@ typedef bucket_compare_func_t(*get_compare_function)(zend_long);
 static int php_array_packed_long_compare(const void *a, const void *b)
 {
 	const zval *lhs = a, *rhs = b;
-	if (Z_LVAL_P(lhs) != Z_LVAL_P(rhs)) {
-		return Z_LVAL_P(lhs) > Z_LVAL_P(rhs) ? 1 : -1;
-	}
-	return (Z_EXTRA_P(lhs) > Z_EXTRA_P(rhs)) - (Z_EXTRA_P(lhs) < Z_EXTRA_P(rhs));
+	return ZEND_THREEWAY_COMPARE(Z_LVAL_P(lhs), Z_LVAL_P(rhs));
 }
 
 static int php_array_packed_long_reverse_compare(const void *a, const void *b)
 {
 	const zval *lhs = a, *rhs = b;
-	if (Z_LVAL_P(lhs) != Z_LVAL_P(rhs)) {
-		return Z_LVAL_P(lhs) < Z_LVAL_P(rhs) ? 1 : -1;
-	}
-	return (Z_EXTRA_P(lhs) > Z_EXTRA_P(rhs)) - (Z_EXTRA_P(lhs) < Z_EXTRA_P(rhs));
+	return ZEND_THREEWAY_COMPARE(Z_LVAL_P(rhs), Z_LVAL_P(lhs));
 }
 
 static bool php_array_try_packed_long_sort(HashTable *array, compare_func_t cmp)
 {
-	if (!HT_IS_PACKED(array)
-	 || !HT_IS_WITHOUT_HOLES(array) || HT_HAS_ITERATORS(array)) {
+	if (!HT_IS_PACKED(array) || !HT_IS_WITHOUT_HOLES(array)) {
 		return false;
 	}
 
@@ -732,7 +725,8 @@ static bool php_array_try_packed_long_sort(HashTable *array, compare_func_t cmp)
 	return true;
 }
 
-static zend_always_inline void php_sort(INTERNAL_FUNCTION_PARAMETERS, get_compare_function get_cmp, bool renumber) {
+static zend_always_inline void php_sort(INTERNAL_FUNCTION_PARAMETERS,
+		get_compare_function get_cmp, bool renumber, compare_func_t packed_cmp) {
 	HashTable *array;
 	zend_long sort_type = PHP_SORT_REGULAR;
 	bucket_compare_func_t cmp;
@@ -746,10 +740,9 @@ static zend_always_inline void php_sort(INTERNAL_FUNCTION_PARAMETERS, get_compar
 	cmp = get_cmp(sort_type);
 
 	/* Keep arrays that do not need sorting on the existing path. */
-	if (renumber && sort_type == PHP_SORT_REGULAR && array->nNumOfElements > 1
-	 && php_array_try_packed_long_sort(array,
-		get_cmp == php_get_data_compare_func
-			? php_array_packed_long_compare : php_array_packed_long_reverse_compare)) {
+	if (renumber && packed_cmp && array->nNumOfElements > 1
+	 && (cmp == php_array_data_compare || cmp == php_array_reverse_data_compare)
+	 && php_array_try_packed_long_sort(array, packed_cmp)) {
 		RETURN_TRUE;
 	}
 
@@ -761,42 +754,44 @@ static zend_always_inline void php_sort(INTERNAL_FUNCTION_PARAMETERS, get_compar
 /* {{{ Sort an array and maintain index association */
 PHP_FUNCTION(asort)
 {
-	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_data_compare_func, false);
+	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_data_compare_func, false, NULL);
 }
 /* }}} */
 
 /* {{{ Sort an array in reverse order and maintain index association */
 PHP_FUNCTION(arsort)
 {
-	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_data_reverse_compare_func, false);
+	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_data_reverse_compare_func, false, NULL);
 }
 /* }}} */
 
 /* {{{ Sort an array */
 PHP_FUNCTION(sort)
 {
-	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_data_compare_func, true);
+	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_data_compare_func, true,
+		php_array_packed_long_compare);
 }
 /* }}} */
 
 /* {{{ Sort an array in reverse order */
 PHP_FUNCTION(rsort)
 {
-	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_data_reverse_compare_func, true);
+	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_data_reverse_compare_func, true,
+		php_array_packed_long_reverse_compare);
 }
 /* }}} */
 
 /* {{{ Sort an array by key value in reverse order */
 PHP_FUNCTION(krsort)
 {
-	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_key_reverse_compare_func, false);
+	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_key_reverse_compare_func, false, NULL);
 }
 /* }}} */
 
 /* {{{ Sort an array by key */
 PHP_FUNCTION(ksort)
 {
-	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_key_compare_func, false);
+	php_sort(INTERNAL_FUNCTION_PARAM_PASSTHRU, php_get_key_compare_func, false, NULL);
 }
 /* }}} */
 
