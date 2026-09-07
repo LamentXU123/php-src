@@ -10,11 +10,12 @@ function check($actual, $expected) {
 
 foreach (['sort', 'rsort'] as $sort) {
     $left = $right = 1;
-    $values = [&$left, 2, &$right];
+    $zeros = array_fill(0, 61, 0);
+    $values = [...$zeros, &$left, 2, &$right];
     $sort($values);
     $left = 11;
     $right = 12;
-    check($values, $sort === 'sort' ? [11, 12, 2] : [2, 11, 12]);
+    check($values, $sort === 'sort' ? [...$zeros, 11, 12, 2] : [2, 11, 12, ...$zeros]);
 
     $values = [1.0, 1, 0.5];
     $sort($values);
@@ -24,10 +25,10 @@ foreach (['sort', 'rsort'] as $sort) {
     $sort($values);
     check($values, $sort === 'sort' ? ['1', '01', '2', '02'] : ['2', '02', '1', '01']);
 
-    $values = range(16, 1);
+    $values = range(64, 1);
     $values[] = 0.5;
     $sort($values);
-    check($values, $sort === 'sort' ? [0.5, ...range(1, 16)] : [...range(16, 1), 0.5]);
+    check($values, $sort === 'sort' ? [0.5, ...range(1, 64)] : [...range(64, 1), 0.5]);
 
     $values = [3, 9, 1, 2];
     unset($values[1]);

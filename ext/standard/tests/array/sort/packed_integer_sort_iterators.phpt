@@ -8,9 +8,9 @@ function check($actual, $expected) {
     }
 }
 
-foreach (['sort', 'rsort'] as $sort) {
+foreach ([['sort', 3], ['sort', 64], ['rsort', 3], ['rsort', 64]] as [$sort, $size]) {
     foreach ([false, true] as $removeCurrent) {
-        $values = [9, 3, 1, 2];
+        $values = [$size + 1, ...range($size, 1)];
         $visited = [];
         $first = true;
         foreach ($values as $key => &$value) {
@@ -28,18 +28,20 @@ foreach (['sort', 'rsort'] as $sort) {
             }
         }
         unset($value);
-        if ($removeCurrent) {
-            $expected = $sort === 'sort' ? [1, 2, 3] : [3, 2, 1];
-            check($visited, [[0, 9], [0, $expected[0]], [1, 2], [2, $expected[2]]]);
-        } else {
-            $expected = $sort === 'sort' ? [1, 2, 3, 9] : [9, 3, 2, 1];
-            check($visited, [[0, 9], [1, $expected[1]], [2, $expected[2]], [3, $expected[3]]]);
+        $count = $size + (int) !$removeCurrent;
+        $expected = $sort === 'sort' ? range(1, $count) : range($count, 1);
+        $expectedVisited = [[0, $size + 1]];
+        for ($index = $removeCurrent ? 0 : 1; $index < $count; $index++) {
+            $expectedVisited[] = [$index, $expected[$index]];
         }
+        check($visited, $expectedVisited);
         check($values, $expected);
     }
-    echo "$sort: OK\n";
+    echo "$sort size $size: OK\n";
 }
 ?>
 --EXPECT--
-sort: OK
-rsort: OK
+sort size 3: OK
+sort size 64: OK
+rsort size 3: OK
+rsort size 64: OK

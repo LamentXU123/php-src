@@ -35,6 +35,19 @@ foreach (['sort', 'rsort'] as $sort) {
     check($original, [3, 1, 2]);
     unset($alias);
 
+    $values = range(65, 1);
+    unset($values[64]);
+    $original = $values;
+    end($values);
+    $sort($values);
+    $expected = $sort === 'sort' ? range(2, 65) : range(65, 2);
+    check($values, $expected);
+    check($original, range(65, 2));
+    check(key($values), 0);
+    check(current($values), $expected[0]);
+    $values[] = 99;
+    check($values, [...$expected, 99]);
+
     $values = [11, 22];
     unset($values[1], $values[0]);
     $sort($values);

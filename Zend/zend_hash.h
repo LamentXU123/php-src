@@ -309,6 +309,11 @@ ZEND_API void  ZEND_FASTCALL zend_array_sort_ex(HashTable *ht, sort_func_t sort_
  * stable sorting must initialize any tie-breaking metadata and compare it. */
 ZEND_API void ZEND_FASTCALL zend_hash_sort_packed(HashTable *ht, compare_func_t compare_func);
 
+/* Sort and renumber a packed user array, compacting holes and keeping it alive
+ * across calls to user code. The comparator receives zvals and must use the
+ * original positions initialized in Z_EXTRA_P() to break ties stably. */
+ZEND_API void ZEND_FASTCALL zend_array_sort_packed(HashTable *ht, compare_func_t compare_func);
+
 static zend_always_inline void ZEND_FASTCALL zend_hash_sort(HashTable *ht, bucket_compare_func_t compare_func, bool renumber) {
 	zend_hash_sort_ex(ht, zend_sort, compare_func, renumber);
 }

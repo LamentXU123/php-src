@@ -1,5 +1,5 @@
 --TEST--
-Packed integer sort and rsort at the insertion sort boundary
+Packed integer sort and rsort at the insertion sort and fast path boundaries
 --FILE--
 <?php
 function check($actual, $expected) {
@@ -8,7 +8,7 @@ function check($actual, $expected) {
     }
 }
 
-foreach ([2, 16, 17] as $size) {
+foreach ([2, 16, 17, 63, 64, 65] as $size) {
     $ascending = range(1, $size);
     $descending = array_reverse($ascending);
     $permuted = array_merge(array_slice($ascending, 1), [1]);
@@ -56,4 +56,7 @@ echo "other comparators: OK\n";
 size 2: OK
 size 16: OK
 size 17: OK
+size 63: OK
+size 64: OK
+size 65: OK
 other comparators: OK

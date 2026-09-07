@@ -2997,15 +2997,54 @@ static void zend_hash_packed_zval_swap(void *a, void *b)
 	*(zval *) b = tmp;
 }
 
-ZEND_API void ZEND_FASTCALL zend_hash_sort_packed(HashTable *ht, compare_func_t compar)
+static void zend_hash_sort_packed_internal(HashTable *ht, compare_func_t compar)
 {
 	IS_CONSISTENT(ht);
-	HT_ASSERT_RC1(ht);
 	ZEND_ASSERT(HT_IS_PACKED(ht) && HT_IS_WITHOUT_HOLES(ht));
 
 	zend_sort(ht->arPacked, ht->nNumUsed, sizeof(zval), compar, zend_hash_packed_zval_swap);
 	ht->nInternalPointer = 0;
 	ht->nNextFreeElement = ht->nNumUsed;
+}
+
+ZEND_API void ZEND_FASTCALL zend_hash_sort_packed(HashTable *ht, compare_func_t compar)
+{
+	HT_ASSERT_RC1(ht);
+	zend_hash_sort_packed_internal(ht, compar);
+}
+
+ZEND_API void ZEND_FASTCALL zend_array_sort_packed(HashTable *ht, compare_func_t compar)
+{
+	HT_ASSERT_RC1(ht);
+	ZEND_ASSERT(HT_IS_PACKED(ht));
+
+	if (ht->nNumOfElements == 0) {
+		return;
+	}
+
+	/* Compact holes and record the original order for stable comparisons. */
+	uint32_t count = 0;
+	for (uint32_t i = 0; i < ht->nNumUsed; i++) {
+		zval *value = &ht->arPacked[i];
+		if (UNEXPECTED(Z_TYPE_P(value) == IS_UNDEF)) {
+			continue;
+		}
+		if (count != i) {
+			ht->arPacked[count] = *value;
+		}
+		Z_EXTRA(ht->arPacked[count]) = count;
+		count++;
+	}
+	ht->nNumUsed = count;
+
+	/* Keep the buffer alive and force PHP writes during comparison to separate. */
+	GC_ADDREF(ht);
+	zend_hash_sort_packed_internal(ht, compar);
+	if (UNEXPECTED(GC_DELREF(ht) == 0)) {
+		zend_array_destroy(ht);
+	} else {
+		gc_check_possible_root((zend_refcounted *) ht);
+	}
 }
 
 static void zend_hash_sort_internal(HashTable *ht, sort_func_t sort, bucket_compare_func_t compar, bool renumber)
