@@ -7,6 +7,8 @@ PHP                                                                        NEWS
     n_scale. (Ilia Alshanetsky)
 
 - Core:
+  . Fixed incorrect foreach iterator positions when compacting arrays with
+    holes. (Weilin Du)
   . Fixed bug GH-15375 (Nested "yield from" skips items after a valid() or
     next() call on the inner generator). (iliaal)
   . Fixed bug GH-23232 (lone namespace separator asks the autoloader for an
