@@ -62,6 +62,8 @@ PHP                                                                        NEWS
   . Fixed field_count not resetting on OK packet. (Kamil Tekiela)
 
 - Opcache:
+  . Fixed incorrect range inference for comparisons at the integer lower bound
+    in the tracing JIT. (Weilin Du)
   . Fixed range inference of assignments through typed references.
     (Ilia Alshanetsky)
   . Fixed bug GH-23693 (Tracing JIT produces wrong results for a guard on a
